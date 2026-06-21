@@ -291,6 +291,29 @@ main {
 
 .course-card li { margin: .5rem 0; }
 
+.detailed-course {
+  display: grid;
+  gap: .75rem;
+}
+
+.detailed-course h4 {
+  margin: .35rem 0 0;
+  color: var(--amber);
+  font-size: .92rem;
+}
+
+.course-topline {
+  display: flex;
+  justify-content: space-between;
+  gap: .75rem;
+  align-items: start;
+}
+
+.inline-checklist {
+  display: grid;
+  gap: .15rem;
+}
+
 .video-card label, .series-card label, .error-form label {
   display: grid;
   gap: .4rem;
@@ -301,6 +324,38 @@ main {
   display: grid;
   gap: .45rem;
   margin-top: .75rem;
+}
+
+.video-checkpoints {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(5.5rem, 1fr));
+  gap: .45rem;
+  margin-top: .8rem;
+  max-height: 18rem;
+  overflow: auto;
+  padding-right: .25rem;
+}
+
+.mini-check {
+  display: inline-flex;
+  align-items: center;
+  gap: .45rem;
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: var(--radius);
+  background: rgba(0,0,0,.18);
+  color: var(--text);
+  padding: .45rem .55rem;
+}
+
+.mini-check input {
+  width: 1rem;
+  height: 1rem;
+}
+
+.hint {
+  color: var(--muted);
+  margin: .75rem 0 0;
+  font-size: .9rem;
 }
 
 .series-card {

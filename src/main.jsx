@@ -6,8 +6,10 @@ import "../styles.css";
 const STORAGE = {
   examDate: "permis.examDate",
   tasks: "permis.programTasks",
+  courseChecks: "permis.courseChecks",
   series: "permis.series",
   videos: "permis.videos",
+  videoChecks: "permis.videoChecks",
   errors: "permis.errors"
 };
 
@@ -73,12 +75,271 @@ const videoGroups = [
   ["Examens blancs filmés", "الامتحان التجريبي", ["إمتحان تجريبي في رخصة السياقة (14 vidéos — jour 9)"]]
 ];
 
+const detailedCourses = [
+  {
+    id: "signalisation",
+    title: "التشوير الطرقي",
+    subtitle: "Les panneaux et marques que tu dois reconnaître vite pendant l'examen.",
+    study: [
+      "علامات التنبيه : panneaux de danger. Forme triangle, bord rouge. Le bon réflexe est de ralentir et prévoir le danger avant d'arriver dessus.",
+      "علامات المنع : panneaux d'interdiction. Forme cercle, bord rouge. Ils disent ce qui est interdit : vitesse, dépassement, accès, stationnement.",
+      "علامات الإجبار : panneaux d'obligation. Forme cercle, fond bleu. Ils imposent une direction, une voie, une obligation ou un comportement.",
+      "علامات الإرشاد : panneaux d'information, de direction ou de service. Forme rectangle ou carré, souvent bleu ou vert.",
+      "علامات ملتقى الطرق : panneaux liés aux intersections, priorité, Stop, céder le passage et route prioritaire.",
+      "Marquage au sol : ligne continue, ligne discontinue, passages piétons, flèches directionnelles, zébras, lignes jaunes."
+    ],
+    traps: [
+      "Ne pas confondre علامات التنبيه et علامات المنع : triangle = danger, cercle rouge = interdiction.",
+      "Un panneau temporaire ou un agent peut modifier la règle normale.",
+      "La ligne continue interdit le franchissement et rend le dépassement interdit."
+    ],
+    checklist: [
+      "Je reconnais les 5 familles de panneaux.",
+      "Je sais expliquer la différence entre triangle, cercle rouge et cercle bleu.",
+      "Je sais quoi faire devant Stop, céder le passage et route prioritaire.",
+      "Je sais lire les marques au sol importantes."
+    ]
+  },
+  {
+    id: "priority",
+    title: "حق الاسبقية",
+    subtitle: "Les règles de priorité aux intersections, ronds-points et passages protégés.",
+    study: [
+      "À une intersection sans panneau, la règle générale à retenir est la priorité à droite.",
+      "Stop : arrêt obligatoire, puis laisser passer les usagers prioritaires avant de redémarrer.",
+      "Céder le passage : ralentir, contrôler, laisser passer si nécessaire, s'arrêter seulement si besoin.",
+      "Rond-point : vérifier la signalisation. Très souvent, les véhicules déjà engagés ont priorité si le panneau l'indique.",
+      "Passage piéton : priorité aux piétons engagés ou manifestant l'intention de traverser.",
+      "Véhicules prioritaires en intervention : ambulance, police, pompiers avec signaux. Il faut faciliter le passage sans créer de danger."
+    ],
+    traps: [
+      "Ne jamais appliquer priorité à droite si un panneau donne une autre règle.",
+      "Dans un rond-point, regarder les panneaux avant de répondre.",
+      "Un piéton au passage protégé est un point très fréquent dans les questions."
+    ],
+    checklist: [
+      "Je sais résoudre une intersection sans panneau.",
+      "Je sais résoudre Stop et céder le passage.",
+      "Je sais gérer un rond-point.",
+      "Je sais identifier les véhicules prioritaires."
+    ]
+  },
+  {
+    id: "overtaking",
+    title: "التجاوز و التقابل",
+    subtitle: "Dépassement, croisement et décision de sécurité.",
+    study: [
+      "Avant التجاوز : contrôler devant, derrière, angle mort, signaler avec clignotant, garder la distance et vérifier la visibilité.",
+      "التجاوز est interdit si la visibilité est insuffisante, au sommet de côte, dans un virage dangereux, près d'un passage piéton, à une intersection dangereuse ou avec ligne continue.",
+      "التقابل : en route étroite, ralentir, serrer à droite, laisser assez d'espace et céder si obstacle de ton côté.",
+      "Distance latérale : laisser une marge suffisante avec vélos, piétons, deux-roues et véhicules arrêtés."
+    ],
+    traps: [
+      "Si tu ne vois pas assez loin, la réponse sûre est souvent ne pas dépasser.",
+      "La ligne continue est un signal fort : pas de franchissement.",
+      "L'obstacle de ton côté signifie souvent que tu dois céder."
+    ],
+    checklist: [
+      "Je sais quand dépasser est autorisé.",
+      "Je sais quand dépasser est interdit.",
+      "Je sais gérer التقابل sur route étroite.",
+      "Je contrôle toujours rétroviseur, angle mort, clignotant."
+    ]
+  },
+  {
+    id: "parking",
+    title: "الوقوف و التوقف",
+    subtitle: "Différence entre arrêt, stationnement et endroits interdits.",
+    study: [
+      "التوقف : arrêt momentané, généralement pour faire monter/descendre une personne ou charger rapidement.",
+      "الوقوف : immobilisation plus longue du véhicule.",
+      "Interdictions importantes : passage piéton, intersection, virage dangereux, sommet de côte, pont, tunnel, arrêt bus, accès garage, ligne jaune.",
+      "Toujours vérifier les panneaux, le marquage au sol et si le véhicule gêne la visibilité ou la circulation."
+    ],
+    traps: [
+      "Même quelques secondes peuvent être dangereux si tu caches un passage piéton.",
+      "Un stationnement peut être interdit même si la chaussée paraît large.",
+      "Les lignes jaunes et panneaux locaux priment."
+    ],
+    checklist: [
+      "Je distingue التوقف et الوقوف.",
+      "Je connais les zones interdites.",
+      "Je vérifie si je gêne la visibilité.",
+      "Je regarde toujours panneaux et marquage."
+    ]
+  },
+  {
+    id: "lights_vehicle",
+    title: "الأضواء و العربة",
+    subtitle: "Feux, équipement, mécanique simple et systèmes de sécurité.",
+    study: [
+      "Feux de croisement : utilisés la nuit, en tunnel, pluie, brouillard léger ou visibilité réduite.",
+      "Feux de route : utilisés hors agglomération quand il n'y a pas d'usager en face ou devant à courte distance.",
+      "Clignotants : changer de direction, dépasser, se rabattre, sortir d'un stationnement.",
+      "Feux de détresse : danger, panne, ralentissement brusque.",
+      "Équipement : ceinture, pneus en bon état, freins, rétroviseurs, triangle, gilet, essuie-glaces, lave-glace.",
+      "Systèmes : ABS aide à garder le contrôle au freinage, ESP aide à stabiliser, airbags complètent la ceinture."
+    ],
+    traps: [
+      "Les feux de route éblouissent : il faut repasser en croisement face à un usager.",
+      "Le clignotant n'accorde jamais la priorité.",
+      "Un pneu usé augmente la distance de freinage."
+    ],
+    checklist: [
+      "Je sais choisir les bons feux.",
+      "Je connais l'équipement obligatoire.",
+      "Je comprends ABS, ESP, airbags.",
+      "Je sais pourquoi pneus et freins sont essentiels."
+    ]
+  },
+  {
+    id: "safety",
+    title: "السلامة الطرقية",
+    subtitle: "Comportement, perception, distance et risques.",
+    study: [
+      "وظائف التمييز والتقييم : observer, identifier le danger, évaluer, décider, agir.",
+      "Temps de réaction : temps entre voir le danger et commencer l'action.",
+      "Distance de freinage : distance parcourue pendant le freinage.",
+      "Distance d'arrêt : distance de réaction + distance de freinage.",
+      "Facteurs de risque : vitesse, fatigue, téléphone, stress, pluie, nuit, brouillard, pneus usés.",
+      "Adapter la vitesse ne veut pas seulement dire respecter la limite : il faut adapter à la visibilité, météo, trafic et état de la route."
+    ],
+    traps: [
+      "La vitesse augmente fortement la distance d'arrêt.",
+      "La fatigue et le téléphone augmentent le temps de réaction.",
+      "Par pluie, la distance de freinage augmente."
+    ],
+    checklist: [
+      "Je sais définir distance de réaction, freinage, arrêt.",
+      "Je sais repérer les risques.",
+      "Je sais adapter ma vitesse.",
+      "Je comprends l'effet fatigue/téléphone."
+    ]
+  },
+  {
+    id: "influence",
+    title: "السياقة تحت تأثير",
+    subtitle: "Alcool, médicaments, drogues, fatigue et jugement.",
+    study: [
+      "L'alcool, les drogues et certains médicaments ralentissent les réflexes et diminuent le jugement.",
+      "Le danger principal est de croire que l'on contrôle encore alors que le temps de réaction augmente.",
+      "La fatigue peut provoquer manque d'attention, somnolence, mauvaise estimation des distances.",
+      "La bonne réponse dans les questions est presque toujours : ne pas conduire, se reposer, demander une alternative sûre."
+    ],
+    traps: [
+      "Café ou douche ne suppriment pas les effets de l'alcool.",
+      "Un médicament peut être dangereux même légal.",
+      "La fatigue est un risque sérieux, pas un détail."
+    ],
+    checklist: [
+      "Je sais expliquer les effets sur le temps de réaction.",
+      "Je sais reconnaître les situations où il ne faut pas conduire.",
+      "Je lis les pictogrammes des médicaments.",
+      "Je choisis toujours la réponse la plus sûre."
+    ]
+  },
+  {
+    id: "infractions",
+    title: "المخالفات والغرامات",
+    subtitle: "Montants à mémoriser sans ajouter d'autres montants non vérifiés.",
+    study: [
+      "Contravention 1ère classe : 700 DH. Réduction : 400 DH si payé sous 24h, 500 DH si payé sous 15 jours.",
+      "Contravention 2ème classe : 500 DH. Réduction : 300 DH / 350 DH.",
+      "Contravention 3ème classe : 300 DH. Réduction : 150 DH / 200 DH.",
+      "Contravention article 187 : 25 DH.",
+      "جنحة : catégorie plus grave qu'une contravention, jugée par un tribunal, avec risque de poursuites pénales en plus de l'amende."
+    ],
+    traps: [
+      "Ne pas inventer d'autres montants.",
+      "Distinguer contravention et جنحة.",
+      "Les délais de paiement réduit changent le montant à retenir."
+    ],
+    checklist: [
+      "Je connais 700 DH.",
+      "Je connais 500 DH.",
+      "Je connais 300 DH.",
+      "Je connais 25 DH.",
+      "Je comprends جنحة."
+    ]
+  },
+  {
+    id: "plates",
+    title: "الصفيحة",
+    subtitle: "Plaques marocaines à reconnaître pour l'examen.",
+    study: [
+      "Format courant : numéro séquentiel de 1 à 99999 + lettre arabe au milieu + code régional.",
+      "Fond blanc avec caractères noirs pour les véhicules ordinaires.",
+      "La lettre arabe indique la série d'immatriculation.",
+      "Le code régional est à droite et identifie la préfecture/province d'immatriculation.",
+      "WW : véhicule neuf en circulation provisoire.",
+      "W18 : usage provisoire professionnel ou essai, à vérifier selon le contexte exact.",
+      "CD : corps diplomatique. CC : corps consulaire.",
+      "Véhicules de l'État : plaques spécifiques, souvent fond noir et caractères blancs avec M ou المغرب selon le cas.",
+      "Autres plaques à reconnaître visuellement : الشرطة, الوقاية المدنية, القوات المسلحة الملكية."
+    ],
+    traps: [
+      "Ne pas confondre lettre arabe de série et code régional.",
+      "WW n'est pas une plaque normale définitive.",
+      "Les plaques spéciales ont des règles visuelles différentes."
+    ],
+    checklist: [
+      "Je sais lire numéro + lettre arabe + code régional.",
+      "Je reconnais WW, W18, CD, CC.",
+      "Je reconnais plaques de l'État.",
+      "Je sais que les plaques spéciales ne suivent pas toujours le format courant."
+    ]
+  },
+  {
+    id: "method",
+    title: "منهجية حل السؤال",
+    subtitle: "Méthode simple pour répondre aux questions en arabe.",
+    study: [
+      "Regarder d'abord l'image : panneaux, marquage, position des véhicules, piétons, météo, visibilité.",
+      "Identifier le thème : التشوير الطرقي, حق الاسبقية, التجاوز, الوقوف, السلامة الطرقية.",
+      "Chercher le danger principal avant de chercher la réponse.",
+      "Éliminer les réponses dangereuses : accélérer sans visibilité, dépasser avec ligne continue, ignorer piéton, forcer priorité.",
+      "Si tu hésites, choisis la réponse la plus prudente et conforme aux panneaux."
+    ],
+    traps: [
+      "Ne réponds pas seulement avec mémoire : analyse l'image.",
+      "Un petit panneau dans le coin peut changer toute la réponse.",
+      "Le clignotant d'un véhicule ne donne pas automatiquement la priorité."
+    ],
+    checklist: [
+      "Je lis l'image avant les réponses.",
+      "Je repère panneaux et lignes.",
+      "Je cherche le danger.",
+      "Je choisis la réponse la plus sûre."
+    ]
+  }
+];
+
+const carPlaylists = [
+  ["محور التجاوز والتقابل", 1, "التجاوز و التقابل"],
+  ["محور الحوادث والإسعافات 2026", 1, "السلامة الطرقية"],
+  ["محور خاص بالسائق 2026", 1, "السلامة الطرقية"],
+  ["محور الأسبقية في ملتقيات الطرق", 1, "حق الاسبقية"],
+  ["محور الوقوف والتوقف 2026", 1, "الوقوف و التوقف"],
+  ["فيديو خاص بأضواء السيارة 2026", 1, "الأضواء و العربة"],
+  ["محور الميكانيك السيارة 2026", 1, "الأضواء و العربة"],
+  ["محور التشوير الطرقي 2026", 2, "التشوير الطرقي"],
+  ["شرح أنظمة السيارة 2026", 1, "الأضواء و العربة"],
+  ["شرح جميع الجنح 2026", 2, "المخالفات والغرامات"],
+  ["قواعد الأسبقية في المدارات 2026", 1, "حق الاسبقية"],
+  ["مخالفات السرعة 2026", 1, "المخالفات والغرامات"],
+  ["الأسئلة الجديدة لرخصة السياقة 2026", 61, "سلسلة جديدة"],
+  ["إمتحان تجريبي لرخصة السياقة", 14, "الامتحان التجريبي"],
+  ["شرح جميع العلامات الطرقية بالتفصيل", 1, "التشوير الطرقي"]
+];
+
 function App() {
   const [activeTab, setActiveTab] = useState("dashboard");
   const [examDate, setExamDate] = useLocalText(STORAGE.examDate, "2026-06-30");
   const [tasks, setTasks] = useLocalJson(STORAGE.tasks, {});
+  const [courseChecks, setCourseChecks] = useLocalJson(STORAGE.courseChecks, {});
   const [series, setSeries] = useLocalJson(STORAGE.series, {});
   const [videos, setVideos] = useLocalJson(STORAGE.videos, {});
+  const [videoChecks, setVideoChecks] = useLocalJson(STORAGE.videoChecks, {});
   const [errors, setErrors] = useLocalJson(STORAGE.errors, []);
   const dayRefs = useRef({});
 
@@ -116,10 +377,10 @@ function App() {
       <main>
         {activeTab === "dashboard" && <Dashboard examDate={examDate} setExamDate={setExamDate} progress={progress} pendingErrors={pendingErrors} goToday={goToday} />}
         {activeTab === "program" && <Program tasks={tasks} setTasks={setTasks} dayRefs={dayRefs} examDate={examDate} />}
-        {activeTab === "courses" && <Courses />}
-        {activeTab === "videos" && <Videos videos={videos} setVideos={setVideos} />}
+        {activeTab === "courses" && <Courses courseChecks={courseChecks} setCourseChecks={setCourseChecks} />}
+        {activeTab === "videos" && <Videos videos={videos} setVideos={setVideos} videoChecks={videoChecks} setVideoChecks={setVideoChecks} />}
         {activeTab === "series" && <Series series={series} setSeries={setSeries} />}
-        {activeTab === "errors" && <Errors errors={errors} setErrors={setErrors} allState={{ examDate, tasks, series, videos }} refreshState={{ setExamDate, setTasks, setSeries, setVideos }} />}
+        {activeTab === "errors" && <Errors errors={errors} setErrors={setErrors} allState={{ examDate, tasks, courseChecks, series, videos, videoChecks }} refreshState={{ setExamDate, setTasks, setCourseChecks, setSeries, setVideos, setVideoChecks }} />}
       </main>
     </>
   );
@@ -180,16 +441,47 @@ function Program({ tasks, setTasks, dayRefs, examDate }) {
   );
 }
 
-function Courses() {
+function Courses({ courseChecks, setCourseChecks }) {
   return (
     <section className="page active">
-      <SectionHeading kicker="Leçons" title="Cours détaillés" />
+      <SectionHeading kicker="Leçons complètes" title="Cours détaillés" />
       <div className="course-grid">
-        {courses.map(([title, subtitle, items]) => (
-          <article className="course-card" key={title}>
-            <h3 className="arabic" dir="rtl">{title}</h3>
-            <p>{subtitle}</p>
-            <ul>{items.map((item) => <li key={item}><MarkedText text={item} /></li>)}</ul>
+        {detailedCourses.map((course) => (
+          <article className="course-card detailed-course" key={course.id}>
+            <div className="course-topline">
+              <div>
+                <h3 className="arabic" dir="rtl">{course.title}</h3>
+                <p>{course.subtitle}</p>
+              </div>
+              <label className="mini-check">
+                <input
+                  type="checkbox"
+                  checked={Boolean(courseChecks[`${course.id}:studied`])}
+                  onChange={(e) => setCourseChecks({ ...courseChecks, [`${course.id}:studied`]: e.target.checked })}
+                />
+                étudié
+              </label>
+            </div>
+            <h4>À étudier</h4>
+            <ul>{course.study.map((item) => <li key={item}><MarkedText text={item} /></li>)}</ul>
+            <h4>Pièges fréquents</h4>
+            <ul>{course.traps.map((item) => <li key={item}><MarkedText text={item} /></li>)}</ul>
+            <h4>Checklist</h4>
+            <div className="inline-checklist">
+              {course.checklist.map((item, index) => {
+                const key = `${course.id}:check:${index}`;
+                return (
+                  <label key={key} className="check-item">
+                    <input
+                      type="checkbox"
+                      checked={Boolean(courseChecks[key])}
+                      onChange={(e) => setCourseChecks({ ...courseChecks, [key]: e.target.checked })}
+                    />
+                    <MarkedText text={item} />
+                  </label>
+                );
+              })}
+            </div>
           </article>
         ))}
       </div>
@@ -197,24 +489,50 @@ function Courses() {
   );
 }
 
-function Videos({ videos, setVideos }) {
+function Videos({ videos, setVideos, videoChecks, setVideoChecks }) {
+  const totalVideos = carPlaylists.reduce((sum, [, count]) => sum + count, 0);
+  const watchedVideos = carPlaylists.reduce((sum, [name, count]) => {
+    return sum + Array.from({ length: count }, (_, index) => Boolean(videoChecks[`${slug(name)}:${index + 1}`])).filter(Boolean).length;
+  }, 0);
+
   return (
     <section className="page active">
-      <SectionHeading kicker="Playlists à compléter" title="Vidéos par thème" />
+      <SectionHeading kicker={`${watchedVideos}/${totalVideos} vidéos cochées`} title="Vidéos voiture à suivre" />
       <div className="video-grid">
-        {videoGroups.map(([title, theme, playlists]) => (
-          <article className="video-card" key={title}>
-            <h3>{title}</h3>
+        {carPlaylists.map(([name, count, theme], playlistIndex) => (
+          <article className="video-card" key={name}>
+            <div className="series-top">
+              <h3 className="arabic" dir="rtl">{name}</h3>
+              <span className="badge">{count} {count > 1 ? "vidéos" : "vidéo"}</span>
+            </div>
             <span className="theme-pill arabic" dir="rtl">{theme}</span>
-            {playlists.map((playlist) => {
-              const key = slug(`${title}-${playlist}`);
-              return (
-                <label className="playlist-row" key={key}>
-                  <span className="arabic" dir="rtl">{playlist}</span>
-                  <input type="text" placeholder="Coller le lien ou l'ID YouTube" value={videos[key] || ""} onChange={(e) => setVideos({ ...videos, [key]: e.target.value })} />
-                </label>
-              );
-            })}
+            <label className="playlist-row">
+              <span>Lien ou ID YouTube de la playlist</span>
+              <input
+                type="text"
+                placeholder="Coller le vrai lien ou ID YouTube"
+                value={videos[slug(name)] || ""}
+                onChange={(e) => setVideos({ ...videos, [slug(name)]: e.target.value })}
+              />
+            </label>
+            <div className="video-checkpoints">
+              {Array.from({ length: count }, (_, index) => {
+                const number = index + 1;
+                const key = `${slug(name)}:${number}`;
+                return (
+                  <label key={key} className="mini-check">
+                    <input
+                      type="checkbox"
+                      checked={Boolean(videoChecks[key])}
+                      onChange={(e) => setVideoChecks({ ...videoChecks, [key]: e.target.checked })}
+                    />
+                    Vidéo {number}
+                  </label>
+                );
+              })}
+            </div>
+            {playlistIndex === 12 && <p className="hint">À répartir surtout sur les jours 6 et 7 : ce bloc contient beaucoup de questions nouvelles.</p>}
+            {playlistIndex === 13 && <p className="hint">À utiliser en condition réelle : chronomètre, correction immédiate, puis ajout des erreurs avec photo.</p>}
           </article>
         ))}
       </div>
@@ -257,7 +575,7 @@ function Series({ series, setSeries }) {
 function Errors({ errors, setErrors, allState, refreshState }) {
   const [selectedPhoto, setSelectedPhoto] = useState(null);
   const [preview, setPreview] = useState("");
-  const [filters, setFilters] = useState({ theme: "all", series: "", status: "all" });
+  const [filters, setFilters] = useState({ theme: "all", series: "", status: "all", difficulty: "all" });
   const [lightbox, setLightbox] = useState("");
   const [thumbUrls, setThumbUrls] = useState({});
   const formRef = useRef(null);
@@ -267,6 +585,7 @@ function Errors({ errors, setErrors, allState, refreshState }) {
     if (filters.series && String(error.series) !== String(filters.series)) return false;
     if (filters.status === "pending" && error.reviewed) return false;
     if (filters.status === "reviewed" && !error.reviewed) return false;
+    if (filters.difficulty !== "all" && error.difficulty !== filters.difficulty) return false;
     return true;
   }), [errors, filters]);
 
@@ -312,6 +631,10 @@ function Errors({ errors, setErrors, allState, refreshState }) {
       series: form.get("series"),
       theme: form.get("theme"),
       question: String(form.get("question") || "").trim(),
+      answerGiven: String(form.get("answerGiven") || "").trim(),
+      correctAnswer: String(form.get("correctAnswer") || "").trim(),
+      reason: String(form.get("reason") || "").trim(),
+      difficulty: form.get("difficulty") || "moyen",
       note: String(form.get("note") || "").trim(),
       date: new Date().toISOString(),
       reviewed: false
@@ -359,8 +682,10 @@ function Errors({ errors, setErrors, allState, refreshState }) {
     }
     refreshState.setExamDate(backup.localStorage.examDate || "2026-06-30");
     refreshState.setTasks(backup.localStorage.tasks || {});
+    refreshState.setCourseChecks(backup.localStorage.courseChecks || {});
     refreshState.setSeries(backup.localStorage.series || {});
     refreshState.setVideos(backup.localStorage.videos || {});
+    refreshState.setVideoChecks(backup.localStorage.videoChecks || {});
     setErrors(backup.localStorage.errors || []);
     for (const [id, dataUrl] of Object.entries(backup.images)) {
       if (dataUrl) await putImage(id, dataUrlToBlob(dataUrl));
@@ -388,6 +713,10 @@ function Errors({ errors, setErrors, allState, refreshState }) {
           <label>Série n°<input name="series" type="number" min="1" max="40" inputMode="numeric" /></label>
           <label>Thème<select name="theme" required>{themes.map((theme) => <option key={theme} value={theme} dir="rtl">{theme}</option>)}</select></label>
           <label>N° de question<input name="question" type="text" /></label>
+          <label>Réponse choisie<input name="answerGiven" type="text" /></label>
+          <label>Bonne réponse<input name="correctAnswer" type="text" /></label>
+          <label>Difficulté<select name="difficulty"><option value="facile">facile</option><option value="moyen">moyen</option><option value="difficile">difficile</option></select></label>
+          <label>Pourquoi j'ai fait l'erreur<textarea name="reason" rows="3" /></label>
           <label>Note / règle à retenir<textarea name="note" rows="4" /></label>
         </div>
         <button className="primary-action icon-button" type="submit"><Upload size={18} />Ajouter l'erreur</button>
@@ -397,6 +726,7 @@ function Errors({ errors, setErrors, allState, refreshState }) {
         <label><Filter size={16} /> Thème<select value={filters.theme} onChange={(e) => setFilters({ ...filters, theme: e.target.value })}><option value="all">Tous les thèmes</option>{themes.map((theme) => <option key={theme} value={theme} dir="rtl">{theme}</option>)}</select></label>
         <label>Série<input type="number" min="1" max="40" placeholder="Série" value={filters.series} onChange={(e) => setFilters({ ...filters, series: e.target.value })} /></label>
         <label>Statut<select value={filters.status} onChange={(e) => setFilters({ ...filters, status: e.target.value })}><option value="all">Tous les statuts</option><option value="pending">À revoir</option><option value="reviewed">Revu</option></select></label>
+        <label>Difficulté<select value={filters.difficulty} onChange={(e) => setFilters({ ...filters, difficulty: e.target.value })}><option value="all">Toutes</option><option value="facile">facile</option><option value="moyen">moyen</option><option value="difficile">difficile</option></select></label>
       </div>
 
       <div className="error-gallery">
@@ -410,8 +740,11 @@ function Errors({ errors, setErrors, allState, refreshState }) {
             <div>
               <strong className="arabic" dir="rtl">{error.theme}</strong>
               <p>Série {error.series || "-"} {error.question ? `- Question ${error.question}` : ""}</p>
+              {error.answerGiven && <p><b>Ma réponse :</b> {error.answerGiven}</p>}
+              {error.correctAnswer && <p><b>Bonne réponse :</b> {error.correctAnswer}</p>}
+              {error.reason && <p><b>Pourquoi :</b> {error.reason}</p>}
               <p>{error.note}</p>
-              <small>{new Date(error.date).toLocaleDateString("fr-FR")} · <span className={error.reviewed ? "reviewed" : "pending"}>{error.reviewed ? "revu" : "à revoir"}</span></small>
+              <small>{new Date(error.date).toLocaleDateString("fr-FR")} · {error.difficulty || "moyen"} · <span className={error.reviewed ? "reviewed" : "pending"}>{error.reviewed ? "revu" : "à revoir"}</span></small>
             </div>
             <div className="card-actions">
               <button className="icon-button" onClick={() => setErrors(errors.map((item) => item.id === error.id ? { ...item, reviewed: !item.reviewed } : item))}><CheckCircle2 size={17} />{error.reviewed ? "À revoir" : "Marquer comme revu"}</button>

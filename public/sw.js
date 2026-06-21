@@ -1,4 +1,4 @@
-const CACHE_NAME = "permisayman-react-v1";
+const CACHE_NAME = "permisayman-react-v2";
 const CORE_ASSETS = ["/", "/index.html"];
 
 self.addEventListener("install", (event) => {
