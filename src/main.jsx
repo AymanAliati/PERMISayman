@@ -789,6 +789,7 @@ function Errors({ errors, setErrors, initialDraft, allState, refreshState }) {
     }
     const form = new FormData(event.currentTarget);
     const id = crypto.randomUUID();
+    const storedImage = await createStoredImage(selectedPhoto);
     const thumb = await createThumbnail(selectedPhoto);
     const metadata = {
       id,
@@ -806,13 +807,13 @@ function Errors({ errors, setErrors, initialDraft, allState, refreshState }) {
     const serverError = await saveServerError({
       id,
       metadata,
-      imageDataUrl: await blobToDataUrl(selectedPhoto),
+      imageDataUrl: await blobToDataUrl(storedImage),
       thumbDataUrl: await blobToDataUrl(thumb)
     });
     if (serverError) {
       setErrors([serverError, ...errors.filter((error) => error.id !== serverError.id)]);
     } else {
-      await putImage(id, selectedPhoto);
+      await putImage(id, storedImage);
       await putImage(`${id}-thumb`, thumb);
       setErrors([metadata, ...errors]);
     }
@@ -1109,10 +1110,17 @@ async function deleteImage(id) {
 }
 
 function createThumbnail(file) {
+  return resizeImage(file, 720, 0.9);
+}
+
+function createStoredImage(file) {
+  return resizeImage(file, 1800, 0.9);
+}
+
+function resizeImage(file, max, quality) {
   return new Promise((resolve, reject) => {
     const image = new Image();
     image.onload = () => {
-      const max = 720;
       const scale = Math.min(1, max / Math.max(image.width, image.height));
       const canvas = document.createElement("canvas");
       canvas.width = Math.round(image.width * scale);
@@ -1121,7 +1129,7 @@ function createThumbnail(file) {
       ctx.imageSmoothingEnabled = true;
       ctx.imageSmoothingQuality = "high";
       ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
-      canvas.toBlob((blob) => blob ? resolve(blob) : reject(new Error("Thumbnail impossible")), "image/jpeg", 0.9);
+      canvas.toBlob((blob) => blob ? resolve(blob) : reject(new Error("Image impossible")), "image/jpeg", quality);
     };
     image.onerror = reject;
     image.src = URL.createObjectURL(file);

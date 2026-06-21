@@ -40,3 +40,21 @@ Donc un autre navigateur, ou un autre PC connecte au meme serveur, verra les mem
 Sans serveur, les photos des erreurs restent en fallback dans IndexedDB du navigateur. Avec le serveur, elles sont stockees dans `server/uploads/`.
 
 Utilise `Exporter ma sauvegarde` pour creer un fichier JSON qui contient aussi les images en base64.
+
+## Deploiement Vercel
+
+Sur Vercel, les fichiers `server/data/state.json` et `server/uploads/` ne peuvent pas servir de stockage permanent. Pour que tous les visiteurs voient les memes cases cochees et les memes photos, il faut connecter un stockage Vercel Blob au projet.
+
+Dans le dashboard Vercel :
+
+1. Ouvre ton projet.
+2. Va dans `Storage`.
+3. Cree ou connecte un store `Vercel Blob`.
+4. Assure-toi que la variable `BLOB_READ_WRITE_TOKEN` est ajoutee au projet.
+5. Redeploie le site.
+
+Ensuite :
+
+- les cases cochees sont stockees dans `permisayman/state.json` sur Vercel Blob ;
+- les images sont stockees dans `permisayman/uploads/` sur Vercel Blob ;
+- n'importe quel navigateur verra le meme etat partage.
