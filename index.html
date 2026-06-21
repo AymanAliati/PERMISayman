@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>PERMISayman - Révision permis B</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <header class="app-header">
+      <div class="brand-mark" aria-hidden="true"></div>
+      <div>
+        <p class="kicker">Code de la route marocain - catégorie B</p>
+        <h1>PERMISayman</h1>
+      </div>
+    </header>
+
+    <nav class="tabs" aria-label="Navigation principale">
+      <button class="tab active" data-tab="dashboard">Tableau</button>
+      <button class="tab" data-tab="program">Programme</button>
+      <button class="tab" data-tab="courses">Cours</button>
+      <button class="tab" data-tab="videos">Vidéos</button>
+      <button class="tab" data-tab="series">Séries</button>
+      <button class="tab" data-tab="errors">Erreurs</button>
+    </nav>
+
+    <main>
+      <section id="dashboard" class="page active" aria-labelledby="dashboard-title">
+        <div class="section-heading">
+          <div>
+            <p class="kicker">Vue rapide</p>
+            <h2 id="dashboard-title">Tableau de bord</h2>
+          </div>
+          <button class="primary-action" id="goToday">Aller à aujourd'hui</button>
+        </div>
+        <div class="dashboard-grid">
+          <article class="metric-card road-card">
+            <label for="examDate">Date de mon examen</label>
+            <input id="examDate" type="date" value="2026-06-30">
+            <strong id="daysLeft">0</strong>
+            <span>jours restants</span>
+          </article>
+          <article class="metric-card">
+            <div class="progress-ring" id="progressRing" aria-label="Progression globale">
+              <span id="globalProgress">0%</span>
+            </div>
+            <p>Tâches du Programme cochées</p>
+          </article>
+          <article class="metric-card danger-card">
+            <strong id="pendingErrors">0</strong>
+            <span>erreurs non encore revues</span>
+          </article>
+        </div>
+      </section>
+
+      <section id="program" class="page" aria-labelledby="program-title">
+        <div class="section-heading">
+          <div>
+            <p class="kicker">Plan de révision</p>
+            <h2 id="program-title">Programme sur 10 jours</h2>
+          </div>
+        </div>
+        <div class="timeline" id="programTimeline"></div>
+      </section>
+
+      <section id="courses" class="page" aria-labelledby="courses-title">
+        <div class="section-heading">
+          <div>
+            <p class="kicker">Leçons</p>
+            <h2 id="courses-title">Cours détaillés</h2>
+          </div>
+        </div>
+        <div class="course-grid" id="courseGrid"></div>
+      </section>
+
+      <section id="videos" class="page" aria-labelledby="videos-title">
+        <div class="section-heading">
+          <div>
+            <p class="kicker">Playlists à compléter</p>
+            <h2 id="videos-title">Vidéos par thème</h2>
+          </div>
+        </div>
+        <div class="video-grid" id="videoGrid"></div>
+      </section>
+
+      <section id="series" class="page" aria-labelledby="series-title">
+        <div class="section-heading">
+          <div>
+            <p class="kicker">PERMINOU</p>
+            <h2 id="series-title">Suivi des 40 séries</h2>
+          </div>
+        </div>
+        <div class="series-grid" id="seriesGrid"></div>
+      </section>
+
+      <section id="errors" class="page" aria-labelledby="errors-title">
+        <div class="section-heading">
+          <div>
+            <p class="kicker">Journal visuel</p>
+            <h2 id="errors-title">Mes erreurs</h2>
+          </div>
+          <div class="backup-actions">
+            <button id="exportBackup">Exporter ma sauvegarde</button>
+            <label class="file-button">
+              Importer une sauvegarde
+              <input id="importBackup" type="file" accept="application/json">
+            </label>
+          </div>
+        </div>
+
+        <form class="error-form" id="errorForm">
+          <div class="photo-drop" id="photoDrop" tabindex="0">
+            <input id="photoInput" type="file" accept="image/*" capture="environment">
+            <label for="photoInput">Importer une photo</label>
+            <p>Photo obligatoire. Collage d'image accepté avec Ctrl+V.</p>
+            <img id="photoPreview" alt="">
+          </div>
+          <div class="form-grid">
+            <label>Série n°
+              <input id="errorSeries" type="number" min="1" max="40" inputmode="numeric">
+            </label>
+            <label>Thème
+              <select id="errorTheme" required></select>
+            </label>
+            <label>N° de question
+              <input id="errorQuestion" type="text">
+            </label>
+            <label>Note / règle à retenir
+              <textarea id="errorNote" rows="4"></textarea>
+            </label>
+          </div>
+          <button class="primary-action" type="submit">Ajouter l'erreur</button>
+        </form>
+
+        <div class="filters">
+          <select id="filterTheme"></select>
+          <input id="filterSeries" type="number" min="1" max="40" placeholder="Série">
+          <select id="filterStatus">
+            <option value="all">Tous les statuts</option>
+            <option value="pending">À revoir</option>
+            <option value="reviewed">Revu</option>
+          </select>
+        </div>
+        <div class="error-gallery" id="errorGallery"></div>
+      </section>
+    </main>
+
+    <dialog class="lightbox" id="lightbox">
+      <button class="close-lightbox" id="closeLightbox" aria-label="Fermer">×</button>
+      <img id="lightboxImage" alt="Photo d'erreur agrandie">
+    </dialog>
+
+    <script src="app.js"></script>
+  </body>
+</html>
