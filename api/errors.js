@@ -2,6 +2,8 @@ import { readSharedState, saveSharedImage, writeSharedState } from "./_storage.j
 import { randomUUID } from "node:crypto";
 
 export default async function handler(req, res) {
+  res.setHeader("Cache-Control", "no-store");
+
   if (req.method !== "POST") {
     res.setHeader("Allow", "POST");
     return res.status(405).json({ ok: false, error: "Method not allowed" });
