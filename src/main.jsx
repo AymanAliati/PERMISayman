@@ -40,16 +40,109 @@ const themes = [
 ];
 
 const program = [
-  { day: 1, title: "Bases - signalisation", theme: "التشوير الطرقي", tasks: ["Lire la leçon « وظائف التمييز والتقييم » (perception et temps de réaction)", "Lire la leçon « أهمية اليقظة واتخاذ الموقف الملائم » (vigilance)", "Étudier « علامات التنبيه » (panneaux de danger)", "Étudier « علامات المنع » (panneaux d'interdiction)", "سلسلة 1 — التشوير الطرقي (40 questions, objectif ≥34/40)"] },
-  { day: 2, title: "Signalisation, suite", theme: "التشوير الطرقي", tasks: ["Lire « السياقة تحت تأثير » (conduite sous influence)", "Étudier « علامات الإرشاد », « علامات الإجبار », « علامات ملتقى الطرق »", "سلسلة 2 — التشوير الطرقي (objectif ≥34/40)"] },
-  { day: 3, title: "Dépassement & croisement", theme: "التجاوز", tasks: ["سلسلة 3 — التجاوز + التشوير الطرقي", "سلسلة 4 — التجاوز و التقابل", "Capturer chaque erreur pour la section \"Mes erreurs\""] },
-  { day: 4, title: "Stationnement & priorité", theme: "حق الاسبقية", tasks: ["سلسلة 5 — الوقوف و التوقف", "سلسلة 6 — حق الاسبقية"] },
-  { day: 5, title: "Priorité, éclairage, notions", theme: "الأضواء و العربة", tasks: ["سلسلة 7 — حق الاسبقية", "سلسلة 8 — الأضواء و العربة", "سلسلة 9 — مفاهيم تطبيقية"] },
-  { day: 6, title: "Sécurité & amendes", theme: "المخالفات والعقوبات", tasks: ["Lire/mémoriser la section amendes (voir Cours > Infractions)", "سلسلة 10 et 11 — السلامة الطرقية", "سلسلة 12 et 13 — المخالفات والغرامات"] },
-  { day: 7, title: "Marathon tests blancs", theme: "الإختبار", tasks: ["سلسلة 14 à 22 — الإختبار رقم 1 à 9 (9 tests chronométrés)"] },
-  { day: 8, title: "Niveau avancé  1→9", theme: "سلسلة جديدة", tasks: ["سلسلة جديدة 1 à 9 (= séries n°23 à 31 dans l'appli)"] },
-  { day: 9, title: "Niveau avancé  10→18 + examens blancs", theme: "الامتحان التجريبي", tasks: ["سلسلة جديدة 10 à 18 (= séries n°32 à 40)", "الامتحان التجريبي #1 et #2 (conditions réelles, chronométré)"] },
-  { day: 10, title: "Jour J - repos actif", theme: "", tasks: ["Relire UNIQUEMENT la section \"Mes erreurs\", aucune série neuve", "Repasser vite les montants d'amendes"] }
+  {
+    day: 1,
+    title: "Signalisation complète",
+    theme: "التشوير الطرقي",
+    tasks: [
+      "Lire le cours « التشوير الطرقي » en entier",
+      "Étudier « علامات التنبيه », « علامات المنع », « علامات الإجبار », « علامات الإرشاد », « علامات ملتقى الطرق »",
+      "Vidéo : « شرح جميع العلامات الطرقية بالتفصيل »",
+      "Vidéo : « محور التشوير الطرقي 2026 » — vidéo 1",
+      "Vidéo : « محور التشوير الطرقي 2026 » — vidéo 2",
+      "Faire سلسلة 1 — التشوير الطرقي",
+      "Faire سلسلة 2 — التشوير الطرقي",
+      "Pour chaque faute : ouvrir la série, bouton « Ajouter une erreur », importer la photo de la question"
+    ]
+  },
+  {
+    day: 2,
+    title: "Priorité et ronds-points",
+    theme: "حق الاسبقية",
+    tasks: [
+      "Lire le cours « حق الاسبقية » en entier",
+      "Étudier priorité à droite, Stop, céder le passage, passage piéton, véhicules prioritaires",
+      "Vidéo : « محور الأسبقية في ملتقيات الطرق »",
+      "Vidéo : « قواعد الأسبقية في المدارات 2026 »",
+      "Faire سلسلة 6 — حق الاسبقية",
+      "Faire سلسلة 7 — حق الاسبقية",
+      "Ajouter les captures des questions ratées dans les séries 6 et 7"
+    ]
+  },
+  {
+    day: 3,
+    title: "Dépassement, croisement, arrêt",
+    theme: "التجاوز و التقابل",
+    tasks: [
+      "Lire le cours « التجاوز و التقابل »",
+      "Lire le cours « الوقوف و التوقف »",
+      "Vidéo : « محور التجاوز والتقابل »",
+      "Vidéo : « محور الوقوف والتوقف 2026 »",
+      "Faire سلسلة 3 — التجاوز + التشوير الطرقي",
+      "Faire سلسلة 4 — التجاوز و التقابل",
+      "Faire سلسلة 5 — الوقوف و التوقف",
+      "Ajouter une erreur avec photo pour chaque question où tu as hésité"
+    ]
+  },
+  {
+    day: 4,
+    title: "Voiture, feux, mécanique, sécurité",
+    theme: "الأضواء و العربة",
+    tasks: [
+      "Lire le cours « الأضواء و العربة »",
+      "Lire le cours « السلامة الطرقية »",
+      "Vidéo : « فيديو خاص بأضواء السيارة 2026 »",
+      "Vidéo : « محور الميكانيك السيارة 2026 »",
+      "Vidéo : « شرح أنظمة السيارة 2026 »",
+      "Vidéo : « محور الحوادث والإسعافات 2026 »",
+      "Vidéo : « محور خاص بالسائق 2026 »",
+      "Faire سلسلة 8 — الأضواء و العربة",
+      "Faire سلسلة 9 — مفاهيم تطبيقية",
+      "Faire سلسلة 10 و سلسلة 11 — السلامة الطرقية"
+    ]
+  },
+  {
+    day: 5,
+    title: "Infractions, amendes, plaques",
+    theme: "المخالفات والغرامات",
+    tasks: [
+      "Lire le cours « المخالفات والغرامات »",
+      "Mémoriser uniquement les montants affichés : 700 DH, 500 DH, 300 DH, 25 DH",
+      "Lire le cours « الصفيحة »",
+      "Vidéo : « شرح جميع الجنح 2026 » — vidéo 1",
+      "Vidéo : « شرح جميع الجنح 2026 » — vidéo 2",
+      "Vidéo : « مخالفات السرعة 2026 »",
+      "Faire سلسلة 12 و سلسلة 13 — المخالفات والغرامات",
+      "Ajouter les erreurs avec photo, surtout les montants et les questions de « جنحة »"
+    ]
+  },
+  {
+    day: 6,
+    title: "Questions nouvelles et tests",
+    theme: "سلسلة جديدة",
+    tasks: [
+      "Faire سلسلة 14 à 22 — الإختبار رقم 1 à 9",
+      "Vidéo : « الأسئلة الجديدة لرخصة السياقة 2026 » — vidéos 1 à 30",
+      "Faire سلسلة جديدة 1 à 9 (= séries 23 à 31)",
+      "Après chaque série, noter score /40",
+      "Si score < 34/40 : ajouter toutes les questions ratées avec photo",
+      "Relire les erreurs à revoir avant de continuer"
+    ]
+  },
+  {
+    day: 7,
+    title: "Simulation examen et révision finale",
+    theme: "الامتحان التجريبي",
+    tasks: [
+      "Vidéo : « الأسئلة الجديدة لرخصة السياقة 2026 » — vidéos 31 à 61",
+      "Vidéo : « إمتحان تجريبي لرخصة السياقة » — vidéos 1 à 14",
+      "Faire سلسلة جديدة 10 à 18 (= séries 32 à 40)",
+      "Faire الامتحان التجريبي #1 en conditions réelles",
+      "Faire الامتحان التجريبي #2 en conditions réelles",
+      "Relire uniquement les erreurs à revoir avec leurs photos",
+      "Marquer comme revu seulement les erreurs que tu peux expliquer sans regarder la correction"
+    ]
+  }
 ];
 
 const courses = [
@@ -334,6 +427,7 @@ const carPlaylists = [
 
 function App() {
   const [activeTab, setActiveTab] = useState("dashboard");
+  const [seriesErrorDraft, setSeriesErrorDraft] = useState(null);
   const [examDate, setExamDate] = useLocalText(STORAGE.examDate, "2026-06-30");
   const [tasks, setTasks] = useLocalJson(STORAGE.tasks, {});
   const [courseChecks, setCourseChecks] = useLocalJson(STORAGE.courseChecks, {});
@@ -379,8 +473,26 @@ function App() {
         {activeTab === "program" && <Program tasks={tasks} setTasks={setTasks} dayRefs={dayRefs} examDate={examDate} />}
         {activeTab === "courses" && <Courses courseChecks={courseChecks} setCourseChecks={setCourseChecks} />}
         {activeTab === "videos" && <Videos videos={videos} setVideos={setVideos} videoChecks={videoChecks} setVideoChecks={setVideoChecks} />}
-        {activeTab === "series" && <Series series={series} setSeries={setSeries} />}
-        {activeTab === "errors" && <Errors errors={errors} setErrors={setErrors} allState={{ examDate, tasks, courseChecks, series, videos, videoChecks }} refreshState={{ setExamDate, setTasks, setCourseChecks, setSeries, setVideos, setVideoChecks }} />}
+        {activeTab === "series" && (
+          <Series
+            series={series}
+            setSeries={setSeries}
+            errors={errors}
+            onAddError={(serie) => {
+              setSeriesErrorDraft({ series: serie.number, theme: getErrorThemeForSeries(serie.theme) });
+              setActiveTab("errors");
+            }}
+          />
+        )}
+        {activeTab === "errors" && (
+          <Errors
+            errors={errors}
+            setErrors={setErrors}
+            initialDraft={seriesErrorDraft}
+            allState={{ examDate, tasks, courseChecks, series, videos, videoChecks }}
+            refreshState={{ setExamDate, setTasks, setCourseChecks, setSeries, setVideos, setVideoChecks }}
+          />
+        )}
       </main>
     </>
   );
@@ -419,7 +531,7 @@ function Program({ tasks, setTasks, dayRefs, examDate }) {
   const todayDay = getCurrentProgramDay(examDate);
   return (
     <section className="page active">
-      <SectionHeading kicker="Plan de révision" title="Programme sur 10 jours" />
+      <SectionHeading kicker="Plan de révision" title="Programme sur 7 jours" />
       <div className="timeline">
         {program.map((day) => (
           <article key={day.day} ref={(node) => { dayRefs.current[day.day] = node; }} className={`day-card ${todayDay === day.day ? "today" : ""}`} data-day={day.day}>
@@ -540,13 +652,15 @@ function Videos({ videos, setVideos, videoChecks, setVideoChecks }) {
   );
 }
 
-function Series({ series, setSeries }) {
+function Series({ series, setSeries, errors, onAddError }) {
   return (
     <section className="page active">
       <SectionHeading kicker="PERMINOU" title="Suivi des 40 séries" />
       <div className="series-grid">
         {buildSeries().map((serie) => {
           const state = series[serie.number] || {};
+          const serieErrors = errors.filter((error) => String(error.series) === String(serie.number));
+          const pendingSerieErrors = serieErrors.filter((error) => !error.reviewed).length;
           return (
             <article className={`series-card ${state.done ? "done" : ""}`} key={serie.number}>
               <div className="series-top">
@@ -564,6 +678,14 @@ function Series({ series, setSeries }) {
                 <span>Score sur 40</span>
                 <input type="number" min="0" max="40" inputMode="numeric" value={state.score || ""} onChange={(e) => setSeries({ ...series, [serie.number]: { ...state, score: e.target.value } })} />
               </label>
+              <div className="series-error-summary">
+                <span><b>{serieErrors.length}</b> erreurs</span>
+                <span><b>{pendingSerieErrors}</b> à revoir</span>
+              </div>
+              <button className="primary-action icon-button" type="button" onClick={() => onAddError(serie)}>
+                <Camera size={18} />
+                Ajouter une erreur
+              </button>
             </article>
           );
         })}
@@ -572,7 +694,7 @@ function Series({ series, setSeries }) {
   );
 }
 
-function Errors({ errors, setErrors, allState, refreshState }) {
+function Errors({ errors, setErrors, initialDraft, allState, refreshState }) {
   const [selectedPhoto, setSelectedPhoto] = useState(null);
   const [preview, setPreview] = useState("");
   const [filters, setFilters] = useState({ theme: "all", series: "", status: "all", difficulty: "all" });
@@ -597,6 +719,15 @@ function Errors({ errors, setErrors, allState, refreshState }) {
     document.addEventListener("paste", onPaste);
     return () => document.removeEventListener("paste", onPaste);
   }, []);
+
+  useEffect(() => {
+    if (!initialDraft?.series) return;
+    setFilters((current) => ({
+      ...current,
+      series: String(initialDraft.series),
+      theme: initialDraft.theme || "all"
+    }));
+  }, [initialDraft]);
 
   useEffect(() => {
     let cancelled = false;
@@ -703,6 +834,12 @@ function Errors({ errors, setErrors, allState, refreshState }) {
       </SectionHeading>
 
       <form className="error-form" ref={formRef} onSubmit={submit}>
+        {initialDraft?.series && (
+          <div className="linked-series-banner">
+            <span>Erreur liée à la série {initialDraft.series}</span>
+            <span className="arabic" dir="rtl">{initialDraft.theme}</span>
+          </div>
+        )}
         <div className="photo-drop" tabIndex="0">
           <input id="photoInput" type="file" accept="image/*" capture="environment" onChange={(e) => selectPhoto(e.target.files[0], setSelectedPhoto, setPreview)} />
           <label htmlFor="photoInput" className="icon-button"><Camera size={18} />Importer une photo</label>
@@ -710,8 +847,8 @@ function Errors({ errors, setErrors, allState, refreshState }) {
           {preview && <img src={preview} alt="Aperçu de la photo importée" />}
         </div>
         <div className="form-grid">
-          <label>Série n°<input name="series" type="number" min="1" max="40" inputMode="numeric" /></label>
-          <label>Thème<select name="theme" required>{themes.map((theme) => <option key={theme} value={theme} dir="rtl">{theme}</option>)}</select></label>
+          <label>Série n°<input name="series" type="number" min="1" max="40" inputMode="numeric" defaultValue={initialDraft?.series || ""} /></label>
+          <label>Thème<select name="theme" required defaultValue={themes.includes(initialDraft?.theme) ? initialDraft.theme : themes[0]}>{themes.map((theme) => <option key={theme} value={theme} dir="rtl">{theme}</option>)}</select></label>
           <label>N° de question<input name="question" type="text" /></label>
           <label>Réponse choisie<input name="answerGiven" type="text" /></label>
           <label>Bonne réponse<input name="correctAnswer" type="text" /></label>
@@ -813,7 +950,7 @@ function getCurrentProgramDay(examDate) {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const daysUntil = Math.ceil((target - today) / 86400000);
-  return Math.min(10, Math.max(1, 10 - daysUntil + 1));
+  return Math.min(7, Math.max(1, 7 - daysUntil + 1));
 }
 
 function buildSeries() {
@@ -922,6 +1059,13 @@ function dataUrlToBlob(dataUrl) {
 
 function slug(value) {
   return value.toLowerCase().replace(/\s+/g, "-").replace(/[^\w\u0600-\u06ff-]/g, "");
+}
+
+function getErrorThemeForSeries(theme) {
+  if (themes.includes(theme)) return theme;
+  if (theme.includes("التجاوز")) return "التجاوز و التقابل";
+  if (theme.includes("الإختبار") || theme.includes("سلسلة جديدة")) return "آخر";
+  return "آخر";
 }
 
 createRoot(document.getElementById("root")).render(<App />);

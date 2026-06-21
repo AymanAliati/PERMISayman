@@ -381,6 +381,21 @@ main {
   align-items: center;
 }
 
+.series-error-summary {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: .5rem;
+}
+
+.series-error-summary span {
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: var(--radius);
+  background: rgba(255, 77, 94, .1);
+  color: var(--text);
+  padding: .5rem;
+  text-align: center;
+}
+
 .backup-actions, .filters {
   display: flex;
   gap: .65rem;
@@ -398,6 +413,19 @@ main {
   display: grid;
   gap: 1rem;
   margin-bottom: 1rem;
+}
+
+.linked-series-banner {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .75rem;
+  border: 1px solid rgba(244, 182, 63, .45);
+  border-radius: var(--radius);
+  background: rgba(244, 182, 63, .12);
+  color: var(--text);
+  padding: .75rem 1rem;
 }
 
 .photo-drop {
