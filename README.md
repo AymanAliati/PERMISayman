@@ -17,10 +17,26 @@ npm.cmd install
 npm.cmd start
 ```
 
-Ne lance pas le site en double-cliquant sur `index.html` : avec React/Vite, il faut passer par le serveur local Node.js.
+Ne lance pas le site en double-cliquant sur `index.html` : avec React/Vite et le stockage partage, il faut passer par le serveur Node.js.
+
+## Stockage partage
+
+Quand le site est lance avec `lancer-site.bat` ou `npm.cmd start`, les cases cochees, scores, liens videos et erreurs sont stockes dans :
+
+```text
+server/data/state.json
+```
+
+Les photos des erreurs sont stockees comme vrais fichiers dans :
+
+```text
+server/uploads/
+```
+
+Donc un autre navigateur, ou un autre PC connecte au meme serveur, verra les memes cases cochees et les memes photos.
 
 ## Stockage des images
 
-Les photos des erreurs sont stockees localement dans IndexedDB, une zone de stockage du navigateur adaptee aux fichiers. Les textes, scores, taches et liens restent dans localStorage.
+Sans serveur, les photos des erreurs restent en fallback dans IndexedDB du navigateur. Avec le serveur, elles sont stockees dans `server/uploads/`.
 
 Utilise `Exporter ma sauvegarde` pour creer un fichier JSON qui contient aussi les images en base64.

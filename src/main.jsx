@@ -428,6 +428,7 @@ const carPlaylists = [
 function App() {
   const [activeTab, setActiveTab] = useState("dashboard");
   const [seriesErrorDraft, setSeriesErrorDraft] = useState(null);
+  const [serverLoaded, setServerLoaded] = useState(false);
   const [examDate, setExamDate] = useLocalText(STORAGE.examDate, "2026-06-30");
   const [tasks, setTasks] = useLocalJson(STORAGE.tasks, {});
   const [courseChecks, setCourseChecks] = useLocalJson(STORAGE.courseChecks, {});
@@ -440,6 +441,35 @@ function App() {
   useEffect(() => {
     if ("serviceWorker" in navigator && location.protocol !== "file:") navigator.serviceWorker.register("/sw.js");
   }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/state")
+      .then((response) => response.ok ? response.json() : Promise.reject(new Error("API indisponible")))
+      .then((state) => {
+        if (cancelled) return;
+        setExamDate(state.examDate || "2026-06-30");
+        setTasks(state.tasks || {});
+        setCourseChecks(state.courseChecks || {});
+        setSeries(state.series || {});
+        setVideos(state.videos || {});
+        setVideoChecks(state.videoChecks || {});
+        setErrors(state.errors || []);
+        setServerLoaded(true);
+      })
+      .catch(() => setServerLoaded(false));
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!serverLoaded) return;
+    const timer = window.setTimeout(() => {
+      saveServerState({ examDate, tasks, courseChecks, series, videos, videoChecks, errors });
+    }, 350);
+    return () => window.clearTimeout(timer);
+  }, [serverLoaded, examDate, tasks, courseChecks, series, videos, videoChecks, errors]);
 
   const totalTasks = program.reduce((sum, day) => sum + day.tasks.length, 0);
   const doneTasks = Object.values(tasks).filter(Boolean).length;
@@ -461,6 +491,7 @@ function App() {
         <div>
           <p className="kicker">Code de la route marocain - catégorie B</p>
           <h1>PERMISayman</h1>
+          {serverLoaded && <p className="sync-status">Stockage partagé actif</p>}
         </div>
       </header>
       <nav className="tabs" aria-label="Navigation principale">
@@ -734,15 +765,19 @@ function Errors({ errors, setErrors, initialDraft, allState, refreshState }) {
     async function loadThumbs() {
       const next = {};
       for (const error of filtered) {
-        const blob = await getImage(`${error.id}-thumb`);
-        if (blob) next[error.id] = URL.createObjectURL(blob);
+        if (error.thumbUrl) {
+          next[error.id] = error.thumbUrl;
+        } else {
+          const blob = await getImage(`${error.id}-thumb`);
+          if (blob) next[error.id] = URL.createObjectURL(blob);
+        }
       }
       if (!cancelled) setThumbUrls(next);
     }
     loadThumbs();
     return () => {
       cancelled = true;
-      Object.values(thumbUrls).forEach(URL.revokeObjectURL);
+      Object.values(thumbUrls).filter((url) => url.startsWith("blob:")).forEach(URL.revokeObjectURL);
     };
   }, [filtered]);
 
@@ -755,9 +790,7 @@ function Errors({ errors, setErrors, initialDraft, allState, refreshState }) {
     const form = new FormData(event.currentTarget);
     const id = crypto.randomUUID();
     const thumb = await createThumbnail(selectedPhoto);
-    await putImage(id, selectedPhoto);
-    await putImage(`${id}-thumb`, thumb);
-    setErrors([{
+    const metadata = {
       id,
       series: form.get("series"),
       theme: form.get("theme"),
@@ -769,13 +802,31 @@ function Errors({ errors, setErrors, initialDraft, allState, refreshState }) {
       note: String(form.get("note") || "").trim(),
       date: new Date().toISOString(),
       reviewed: false
-    }, ...errors]);
+    };
+    const serverError = await saveServerError({
+      id,
+      metadata,
+      imageDataUrl: await blobToDataUrl(selectedPhoto),
+      thumbDataUrl: await blobToDataUrl(thumb)
+    });
+    if (serverError) {
+      setErrors([serverError, ...errors.filter((error) => error.id !== serverError.id)]);
+    } else {
+      await putImage(id, selectedPhoto);
+      await putImage(`${id}-thumb`, thumb);
+      setErrors([metadata, ...errors]);
+    }
     event.currentTarget.reset();
     setSelectedPhoto(null);
     setPreview("");
   }
 
   async function openImage(id) {
+    const error = errors.find((item) => item.id === id);
+    if (error?.imageUrl) {
+      setLightbox(error.imageUrl);
+      return;
+    }
     const blob = await getImage(id);
     if (blob) setLightbox(URL.createObjectURL(blob));
   }
@@ -783,6 +834,7 @@ function Errors({ errors, setErrors, initialDraft, allState, refreshState }) {
   async function removeError(id) {
     if (!confirm("Supprimer cette erreur ?")) return;
     setErrors(errors.filter((error) => error.id !== id));
+    await fetch(`/api/errors/${encodeURIComponent(id)}`, { method: "DELETE" }).catch(() => {});
     await deleteImage(id);
     await deleteImage(`${id}-thumb`);
   }
@@ -790,8 +842,8 @@ function Errors({ errors, setErrors, initialDraft, allState, refreshState }) {
   async function exportBackup() {
     const images = {};
     for (const error of errors) {
-      const full = await getImage(error.id);
-      const thumb = await getImage(`${error.id}-thumb`);
+      const full = error.imageUrl ? await urlToBlob(error.imageUrl) : await getImage(error.id);
+      const thumb = error.thumbUrl ? await urlToBlob(error.thumbUrl) : await getImage(`${error.id}-thumb`);
       images[error.id] = full ? await blobToDataUrl(full) : null;
       images[`${error.id}-thumb`] = thumb ? await blobToDataUrl(thumb) : null;
     }
@@ -817,7 +869,17 @@ function Errors({ errors, setErrors, initialDraft, allState, refreshState }) {
     refreshState.setSeries(backup.localStorage.series || {});
     refreshState.setVideos(backup.localStorage.videos || {});
     refreshState.setVideoChecks(backup.localStorage.videoChecks || {});
-    setErrors(backup.localStorage.errors || []);
+    const importedErrors = backup.localStorage.errors || [];
+    const syncedErrors = [];
+    for (const error of importedErrors) {
+      const imageDataUrl = backup.images[error.id];
+      const thumbDataUrl = backup.images[`${error.id}-thumb`];
+      const saved = imageDataUrl && thumbDataUrl
+        ? await saveServerError({ id: error.id, metadata: error, imageDataUrl, thumbDataUrl })
+        : null;
+      syncedErrors.push(saved || error);
+    }
+    setErrors(syncedErrors);
     for (const [id, dataUrl] of Object.entries(backup.images)) {
       if (dataUrl) await putImage(id, dataUrlToBlob(dataUrl));
     }
@@ -893,7 +955,7 @@ function Errors({ errors, setErrors, initialDraft, allState, refreshState }) {
 
       {lightbox && (
         <div className="lightbox open" role="dialog" aria-modal="true">
-          <button className="close-lightbox" onClick={() => { URL.revokeObjectURL(lightbox); setLightbox(""); }} aria-label="Fermer"><X size={22} /></button>
+          <button className="close-lightbox" onClick={() => { if (lightbox.startsWith("blob:")) URL.revokeObjectURL(lightbox); setLightbox(""); }} aria-label="Fermer"><X size={22} /></button>
           <img src={lightbox} alt="Photo d'erreur agrandie" />
         </div>
       )}
@@ -935,6 +997,33 @@ function useLocalText(key, fallback) {
   const [value, setValue] = useState(() => localStorage.getItem(key) || fallback);
   useEffect(() => localStorage.setItem(key, value), [key, value]);
   return [value, setValue];
+}
+
+async function saveServerState(state) {
+  try {
+    await fetch("/api/state", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(state)
+    });
+  } catch {
+    // LocalStorage remains the offline fallback when the shared server is not running.
+  }
+}
+
+async function saveServerError(payload) {
+  try {
+    const response = await fetch("/api/errors", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+    if (!response.ok) return null;
+    const result = await response.json();
+    return result.error || null;
+  } catch {
+    return null;
+  }
 }
 
 function getDaysLeft(examDate) {
@@ -1046,6 +1135,11 @@ function blobToDataUrl(blob) {
     reader.onerror = reject;
     reader.readAsDataURL(blob);
   });
+}
+
+async function urlToBlob(url) {
+  const response = await fetch(url);
+  return response.ok ? response.blob() : null;
 }
 
 function dataUrlToBlob(dataUrl) {
