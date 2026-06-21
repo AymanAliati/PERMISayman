@@ -1,0 +1,594 @@
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { createRoot } from "react-dom/client";
+import { CalendarDays, Camera, CheckCircle2, Download, FileUp, Filter, Trash2, Upload, X, ZoomIn } from "lucide-react";
+import "../styles.css";
+
+const STORAGE = {
+  examDate: "permis.examDate",
+  tasks: "permis.programTasks",
+  series: "permis.series",
+  videos: "permis.videos",
+  errors: "permis.errors"
+};
+
+const DB_NAME = "permisayman-images";
+const DB_VERSION = 1;
+const IMAGE_STORE = "images";
+
+const tabs = [
+  ["dashboard", "Tableau"],
+  ["program", "Programme"],
+  ["courses", "Cours"],
+  ["videos", "Vidéos"],
+  ["series", "Séries"],
+  ["errors", "Erreurs"]
+];
+
+const themes = [
+  "التشوير الطرقي",
+  "حق الاسبقية",
+  "التجاوز و التقابل",
+  "الوقوف و التوقف",
+  "الأضواء و العربة",
+  "السلامة الطرقية",
+  "المخالفات والغرامات",
+  "مفاهيم تطبيقية",
+  "دروس نظرية",
+  "آخر"
+];
+
+const program = [
+  { day: 1, title: "Bases - signalisation", theme: "التشوير الطرقي", tasks: ["Lire la leçon « وظائف التمييز والتقييم » (perception et temps de réaction)", "Lire la leçon « أهمية اليقظة واتخاذ الموقف الملائم » (vigilance)", "Étudier « علامات التنبيه » (panneaux de danger)", "Étudier « علامات المنع » (panneaux d'interdiction)", "سلسلة 1 — التشوير الطرقي (40 questions, objectif ≥34/40)"] },
+  { day: 2, title: "Signalisation, suite", theme: "التشوير الطرقي", tasks: ["Lire « السياقة تحت تأثير » (conduite sous influence)", "Étudier « علامات الإرشاد », « علامات الإجبار », « علامات ملتقى الطرق »", "سلسلة 2 — التشوير الطرقي (objectif ≥34/40)"] },
+  { day: 3, title: "Dépassement & croisement", theme: "التجاوز", tasks: ["سلسلة 3 — التجاوز + التشوير الطرقي", "سلسلة 4 — التجاوز و التقابل", "Capturer chaque erreur pour la section \"Mes erreurs\""] },
+  { day: 4, title: "Stationnement & priorité", theme: "حق الاسبقية", tasks: ["سلسلة 5 — الوقوف و التوقف", "سلسلة 6 — حق الاسبقية"] },
+  { day: 5, title: "Priorité, éclairage, notions", theme: "الأضواء و العربة", tasks: ["سلسلة 7 — حق الاسبقية", "سلسلة 8 — الأضواء و العربة", "سلسلة 9 — مفاهيم تطبيقية"] },
+  { day: 6, title: "Sécurité & amendes", theme: "المخالفات والعقوبات", tasks: ["Lire/mémoriser la section amendes (voir Cours > Infractions)", "سلسلة 10 et 11 — السلامة الطرقية", "سلسلة 12 et 13 — المخالفات والغرامات"] },
+  { day: 7, title: "Marathon tests blancs", theme: "الإختبار", tasks: ["سلسلة 14 à 22 — الإختبار رقم 1 à 9 (9 tests chronométrés)"] },
+  { day: 8, title: "Niveau avancé  1→9", theme: "سلسلة جديدة", tasks: ["سلسلة جديدة 1 à 9 (= séries n°23 à 31 dans l'appli)"] },
+  { day: 9, title: "Niveau avancé  10→18 + examens blancs", theme: "الامتحان التجريبي", tasks: ["سلسلة جديدة 10 à 18 (= séries n°32 à 40)", "الامتحان التجريبي #1 et #2 (conditions réelles, chronométré)"] },
+  { day: 10, title: "Jour J - repos actif", theme: "", tasks: ["Relire UNIQUEMENT la section \"Mes erreurs\", aucune série neuve", "Repasser vite les montants d'amendes"] }
+];
+
+const courses = [
+  ["التشوير الطرقي", "Signalisation (5 catégories)", ["علامات التنبيه : triangle, bord rouge → signale un danger à venir", "علامات المنع : cercle, bord rouge → interdiction", "علامات الإجبار : cercle, fond bleu → obligation", "علامات الإرشاد : rectangle/carré bleu ou vert → information/direction", "علامات ملتقى الطرق : panneaux liés aux intersections et à la priorité"]],
+  ["حق الاسبقية", "Priorité", ["priorité à droite par défaut aux intersections sans panneau", "règles aux ronds-points", "priorité piétons aux passages protégés", "priorité véhicules prioritaires (ambulance, pompiers, police en intervention)"]],
+  ["التجاوز و التقابل", "Dépassement et croisement", ["conditions de visibilité", "distance de sécurité avant de doubler", "interdictions (ligne continue, sommet de côte, virage, passage piéton, intersection)"]],
+  ["الوقوف و التوقف", "Arrêt et stationnement", ["Différence entre \"arrêt\" (toupef, momentané, conducteur reste à proximité) et \"stationnement\" (wouqouf, prolongé)", "zones interdites : passages piétons, intersections, ponts, lignes jaunes"]],
+  ["الأضواء و العربة", "Éclairage et équipement obligatoire du véhicule", ["feux de croisement/route", "clignotants", "triangle de signalisation", "gilet", "ceinture", "pneus"]],
+  ["السلامة الطرقية / وظائف التمييز والتقييم", "Sécurité routière", ["perception du danger", "distance et temps de réaction", "distance de freinage"]],
+  ["السياقة تحت تأثير", "Conduite sous l'effet de l'alcool, médicaments, drogues", ["impact sur le temps de réaction et le jugement"]],
+  ["المخالفات والعقوبات", "Infractions et sanctions (montants OFFICIELS vérifiés, loi n°52-05)", ["Contravention 1ère classe : 700 DH (réduit à 400 DH si payé sous 24h, 500 DH si payé sous 15 jours)", "Contravention 2ème classe : 500 DH (réduit à 300 DH / 350 DH)", "Contravention 3ème classe : 300 DH (réduit à 150 DH / 200 DH)", "Contravention article 187 (mineure) : 25 DH", "جنحة (délit) : catégorie plus grave qu'une contravention (une dizaine de cas prévus par la loi), jugée par un tribunal, peut entraîner des poursuites pénales en plus de l'amende."]],
+  ["الصفيحة", "Plaque d'immatriculation marocaine", ["Format standard : numéro séquentiel (1 à 99999) + lettre arabe au milieu (indique la série) + code régional (1 à 2 chiffres, de 1 pour Rabat à 89 pour Lagouira)", "Fond blanc, caractères noirs réfléchissants, carte du Maroc à gauche", "Dimensions standard : 520 x 110 mm pour les voitures", "Plaques spéciales à connaître : CD = corps diplomatique (fond bleu), WW = véhicule neuf en sortie de concession (temporaire), véhicules de l'État = fond noir, caractères blancs, avec \"M\" ou \"المغرب\""]]
+];
+
+const videoGroups = [
+  ["Signalisation", "التشوير الطرقي", ["شرح جميع العلامات الطرقية بالتفصيل", "محور التشوير الطرقي"]],
+  ["Dépassement/croisement", "التجاوز و التقابل", ["محور التجاوز والتقابل"]],
+  ["Priorité", "حق الاسبقية", ["محور الأسبقية في الملتقيات الطرق", "قواعد الأسبقية في المدارات"]],
+  ["Stationnement", "الوقوف و التوقف", ["محور الوقوف والتوقف"]],
+  ["Éclairage/mécanique/systèmes", "الأضواء و العربة", ["محور الأضواء المركبة", "محور الميكانيك المركبة", "شرح أنظمة السيارة"]],
+  ["Sécurité/amendes", "المخالفات والغرامات", ["مخالفات السرعة 2026", "شرح جميع الجنح", "الحوادث و اسعافات", "محور خاص بالسائق"]],
+  ["Entraînement intensif", "أسئلة جديدة ومهمة", ["أسئلة جديدة ومهمة (61 vidéos — jours 7 à 9)"]],
+  ["Examens blancs filmés", "الامتحان التجريبي", ["إمتحان تجريبي في رخصة السياقة (14 vidéos — jour 9)"]]
+];
+
+function App() {
+  const [activeTab, setActiveTab] = useState("dashboard");
+  const [examDate, setExamDate] = useLocalText(STORAGE.examDate, "2026-06-30");
+  const [tasks, setTasks] = useLocalJson(STORAGE.tasks, {});
+  const [series, setSeries] = useLocalJson(STORAGE.series, {});
+  const [videos, setVideos] = useLocalJson(STORAGE.videos, {});
+  const [errors, setErrors] = useLocalJson(STORAGE.errors, []);
+  const dayRefs = useRef({});
+
+  useEffect(() => {
+    if ("serviceWorker" in navigator && location.protocol !== "file:") navigator.serviceWorker.register("/sw.js");
+  }, []);
+
+  const totalTasks = program.reduce((sum, day) => sum + day.tasks.length, 0);
+  const doneTasks = Object.values(tasks).filter(Boolean).length;
+  const progress = totalTasks ? Math.round((doneTasks / totalTasks) * 100) : 0;
+  const pendingErrors = errors.filter((error) => !error.reviewed).length;
+
+  function goToday() {
+    setActiveTab("program");
+    window.requestAnimationFrame(() => {
+      const day = getCurrentProgramDay(examDate);
+      dayRefs.current[day]?.scrollIntoView({ behavior: "smooth", block: "center" });
+    });
+  }
+
+  return (
+    <>
+      <header className="app-header">
+        <div className="brand-mark" aria-hidden="true" />
+        <div>
+          <p className="kicker">Code de la route marocain - catégorie B</p>
+          <h1>PERMISayman</h1>
+        </div>
+      </header>
+      <nav className="tabs" aria-label="Navigation principale">
+        {tabs.map(([id, label]) => (
+          <button key={id} className={`tab ${activeTab === id ? "active" : ""}`} onClick={() => setActiveTab(id)}>{label}</button>
+        ))}
+      </nav>
+      <main>
+        {activeTab === "dashboard" && <Dashboard examDate={examDate} setExamDate={setExamDate} progress={progress} pendingErrors={pendingErrors} goToday={goToday} />}
+        {activeTab === "program" && <Program tasks={tasks} setTasks={setTasks} dayRefs={dayRefs} examDate={examDate} />}
+        {activeTab === "courses" && <Courses />}
+        {activeTab === "videos" && <Videos videos={videos} setVideos={setVideos} />}
+        {activeTab === "series" && <Series series={series} setSeries={setSeries} />}
+        {activeTab === "errors" && <Errors errors={errors} setErrors={setErrors} allState={{ examDate, tasks, series, videos }} refreshState={{ setExamDate, setTasks, setSeries, setVideos }} />}
+      </main>
+    </>
+  );
+}
+
+function Dashboard({ examDate, setExamDate, progress, pendingErrors, goToday }) {
+  const daysLeft = getDaysLeft(examDate);
+  return (
+    <section className="page active">
+      <SectionHeading kicker="Vue rapide" title="Tableau de bord">
+        <button className="primary-action icon-button" onClick={goToday}><CalendarDays size={18} />Aller à aujourd'hui</button>
+      </SectionHeading>
+      <div className="dashboard-grid">
+        <article className="metric-card road-card">
+          <label htmlFor="examDate">Date de mon examen</label>
+          <input id="examDate" type="date" value={examDate} onChange={(e) => setExamDate(e.target.value)} />
+          <strong>{daysLeft}</strong>
+          <span>jours restants</span>
+        </article>
+        <article className="metric-card">
+          <div className="progress-ring" style={{ background: `conic-gradient(var(--green) ${progress * 3.6}deg, #2b3945 0deg)` }}>
+            <span>{progress}%</span>
+          </div>
+          <p>Tâches du Programme cochées</p>
+        </article>
+        <article className="metric-card danger-card">
+          <strong>{pendingErrors}</strong>
+          <span>erreurs non encore revues</span>
+        </article>
+      </div>
+    </section>
+  );
+}
+
+function Program({ tasks, setTasks, dayRefs, examDate }) {
+  const todayDay = getCurrentProgramDay(examDate);
+  return (
+    <section className="page active">
+      <SectionHeading kicker="Plan de révision" title="Programme sur 10 jours" />
+      <div className="timeline">
+        {program.map((day) => (
+          <article key={day.day} ref={(node) => { dayRefs.current[day.day] = node; }} className={`day-card ${todayDay === day.day ? "today" : ""}`} data-day={day.day}>
+            <h3>Jour {day.day} ({day.title})</h3>
+            {day.theme && <span className="theme-pill arabic" dir="rtl">{day.theme}</span>}
+            {day.tasks.map((task, index) => {
+              const id = `d${day.day}-t${index}`;
+              return (
+                <label key={id} className="check-item">
+                  <input type="checkbox" checked={Boolean(tasks[id])} onChange={(e) => setTasks({ ...tasks, [id]: e.target.checked })} />
+                  <MarkedText text={task} />
+                </label>
+              );
+            })}
+          </article>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function Courses() {
+  return (
+    <section className="page active">
+      <SectionHeading kicker="Leçons" title="Cours détaillés" />
+      <div className="course-grid">
+        {courses.map(([title, subtitle, items]) => (
+          <article className="course-card" key={title}>
+            <h3 className="arabic" dir="rtl">{title}</h3>
+            <p>{subtitle}</p>
+            <ul>{items.map((item) => <li key={item}><MarkedText text={item} /></li>)}</ul>
+          </article>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function Videos({ videos, setVideos }) {
+  return (
+    <section className="page active">
+      <SectionHeading kicker="Playlists à compléter" title="Vidéos par thème" />
+      <div className="video-grid">
+        {videoGroups.map(([title, theme, playlists]) => (
+          <article className="video-card" key={title}>
+            <h3>{title}</h3>
+            <span className="theme-pill arabic" dir="rtl">{theme}</span>
+            {playlists.map((playlist) => {
+              const key = slug(`${title}-${playlist}`);
+              return (
+                <label className="playlist-row" key={key}>
+                  <span className="arabic" dir="rtl">{playlist}</span>
+                  <input type="text" placeholder="Coller le lien ou l'ID YouTube" value={videos[key] || ""} onChange={(e) => setVideos({ ...videos, [key]: e.target.value })} />
+                </label>
+              );
+            })}
+          </article>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function Series({ series, setSeries }) {
+  return (
+    <section className="page active">
+      <SectionHeading kicker="PERMINOU" title="Suivi des 40 séries" />
+      <div className="series-grid">
+        {buildSeries().map((serie) => {
+          const state = series[serie.number] || {};
+          return (
+            <article className={`series-card ${state.done ? "done" : ""}`} key={serie.number}>
+              <div className="series-top">
+                <div>
+                  <h3 className="arabic" dir="rtl">{serie.name}</h3>
+                  <span className="theme-pill arabic" dir="rtl">{serie.theme}</span>
+                </div>
+                {serie.advanced && <span className="badge">avancée</span>}
+              </div>
+              <label className="check-item">
+                <input type="checkbox" checked={Boolean(state.done)} onChange={(e) => setSeries({ ...series, [serie.number]: { ...state, done: e.target.checked } })} />
+                <span>fait</span>
+              </label>
+              <label className="score-row">
+                <span>Score sur 40</span>
+                <input type="number" min="0" max="40" inputMode="numeric" value={state.score || ""} onChange={(e) => setSeries({ ...series, [serie.number]: { ...state, score: e.target.value } })} />
+              </label>
+            </article>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
+function Errors({ errors, setErrors, allState, refreshState }) {
+  const [selectedPhoto, setSelectedPhoto] = useState(null);
+  const [preview, setPreview] = useState("");
+  const [filters, setFilters] = useState({ theme: "all", series: "", status: "all" });
+  const [lightbox, setLightbox] = useState("");
+  const [thumbUrls, setThumbUrls] = useState({});
+  const formRef = useRef(null);
+
+  const filtered = useMemo(() => errors.filter((error) => {
+    if (filters.theme !== "all" && error.theme !== filters.theme) return false;
+    if (filters.series && String(error.series) !== String(filters.series)) return false;
+    if (filters.status === "pending" && error.reviewed) return false;
+    if (filters.status === "reviewed" && !error.reviewed) return false;
+    return true;
+  }), [errors, filters]);
+
+  useEffect(() => {
+    const onPaste = (event) => {
+      const file = [...event.clipboardData.items].find((item) => item.type.startsWith("image/"))?.getAsFile();
+      if (file) selectPhoto(file, setSelectedPhoto, setPreview);
+    };
+    document.addEventListener("paste", onPaste);
+    return () => document.removeEventListener("paste", onPaste);
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function loadThumbs() {
+      const next = {};
+      for (const error of filtered) {
+        const blob = await getImage(`${error.id}-thumb`);
+        if (blob) next[error.id] = URL.createObjectURL(blob);
+      }
+      if (!cancelled) setThumbUrls(next);
+    }
+    loadThumbs();
+    return () => {
+      cancelled = true;
+      Object.values(thumbUrls).forEach(URL.revokeObjectURL);
+    };
+  }, [filtered]);
+
+  async function submit(event) {
+    event.preventDefault();
+    if (!selectedPhoto) {
+      alert("La photo est obligatoire.");
+      return;
+    }
+    const form = new FormData(event.currentTarget);
+    const id = crypto.randomUUID();
+    const thumb = await createThumbnail(selectedPhoto);
+    await putImage(id, selectedPhoto);
+    await putImage(`${id}-thumb`, thumb);
+    setErrors([{
+      id,
+      series: form.get("series"),
+      theme: form.get("theme"),
+      question: String(form.get("question") || "").trim(),
+      note: String(form.get("note") || "").trim(),
+      date: new Date().toISOString(),
+      reviewed: false
+    }, ...errors]);
+    event.currentTarget.reset();
+    setSelectedPhoto(null);
+    setPreview("");
+  }
+
+  async function openImage(id) {
+    const blob = await getImage(id);
+    if (blob) setLightbox(URL.createObjectURL(blob));
+  }
+
+  async function removeError(id) {
+    if (!confirm("Supprimer cette erreur ?")) return;
+    setErrors(errors.filter((error) => error.id !== id));
+    await deleteImage(id);
+    await deleteImage(`${id}-thumb`);
+  }
+
+  async function exportBackup() {
+    const images = {};
+    for (const error of errors) {
+      const full = await getImage(error.id);
+      const thumb = await getImage(`${error.id}-thumb`);
+      images[error.id] = full ? await blobToDataUrl(full) : null;
+      images[`${error.id}-thumb`] = thumb ? await blobToDataUrl(thumb) : null;
+    }
+    const backup = { version: 2, exportedAt: new Date().toISOString(), localStorage: { ...allState, errors }, images };
+    const blob = new Blob([JSON.stringify(backup, null, 2)], { type: "application/json" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `permisayman-sauvegarde-${new Date().toISOString().slice(0, 10)}.json`;
+    link.click();
+  }
+
+  async function importBackup(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const backup = JSON.parse(await file.text());
+    if (!backup.localStorage || !backup.images) {
+      alert("Fichier de sauvegarde invalide.");
+      return;
+    }
+    refreshState.setExamDate(backup.localStorage.examDate || "2026-06-30");
+    refreshState.setTasks(backup.localStorage.tasks || {});
+    refreshState.setSeries(backup.localStorage.series || {});
+    refreshState.setVideos(backup.localStorage.videos || {});
+    setErrors(backup.localStorage.errors || []);
+    for (const [id, dataUrl] of Object.entries(backup.images)) {
+      if (dataUrl) await putImage(id, dataUrlToBlob(dataUrl));
+    }
+    event.target.value = "";
+  }
+
+  return (
+    <section className="page active">
+      <SectionHeading kicker="Journal visuel" title="Mes erreurs">
+        <div className="backup-actions">
+          <button className="icon-button" onClick={exportBackup}><Download size={18} />Exporter ma sauvegarde</button>
+          <label className="file-button icon-button"><FileUp size={18} />Importer une sauvegarde<input type="file" accept="application/json" onChange={importBackup} /></label>
+        </div>
+      </SectionHeading>
+
+      <form className="error-form" ref={formRef} onSubmit={submit}>
+        <div className="photo-drop" tabIndex="0">
+          <input id="photoInput" type="file" accept="image/*" capture="environment" onChange={(e) => selectPhoto(e.target.files[0], setSelectedPhoto, setPreview)} />
+          <label htmlFor="photoInput" className="icon-button"><Camera size={18} />Importer une photo</label>
+          <p>Photo obligatoire. Collage d'image accepté avec Ctrl+V.</p>
+          {preview && <img src={preview} alt="Aperçu de la photo importée" />}
+        </div>
+        <div className="form-grid">
+          <label>Série n°<input name="series" type="number" min="1" max="40" inputMode="numeric" /></label>
+          <label>Thème<select name="theme" required>{themes.map((theme) => <option key={theme} value={theme} dir="rtl">{theme}</option>)}</select></label>
+          <label>N° de question<input name="question" type="text" /></label>
+          <label>Note / règle à retenir<textarea name="note" rows="4" /></label>
+        </div>
+        <button className="primary-action icon-button" type="submit"><Upload size={18} />Ajouter l'erreur</button>
+      </form>
+
+      <div className="filters">
+        <label><Filter size={16} /> Thème<select value={filters.theme} onChange={(e) => setFilters({ ...filters, theme: e.target.value })}><option value="all">Tous les thèmes</option>{themes.map((theme) => <option key={theme} value={theme} dir="rtl">{theme}</option>)}</select></label>
+        <label>Série<input type="number" min="1" max="40" placeholder="Série" value={filters.series} onChange={(e) => setFilters({ ...filters, series: e.target.value })} /></label>
+        <label>Statut<select value={filters.status} onChange={(e) => setFilters({ ...filters, status: e.target.value })}><option value="all">Tous les statuts</option><option value="pending">À revoir</option><option value="reviewed">Revu</option></select></label>
+      </div>
+
+      <div className="error-gallery">
+        {!filtered.length && <p className="muted">Aucune erreur pour ces filtres.</p>}
+        {filtered.map((error) => (
+          <article className="error-card" key={error.id}>
+            <button className="thumb-button" onClick={() => openImage(error.id)} aria-label="Ouvrir la photo">
+              {thumbUrls[error.id] ? <img src={thumbUrls[error.id]} alt="Miniature de l'erreur" /> : <span>Photo</span>}
+              <span className="zoom-hint"><ZoomIn size={18} />Zoom</span>
+            </button>
+            <div>
+              <strong className="arabic" dir="rtl">{error.theme}</strong>
+              <p>Série {error.series || "-"} {error.question ? `- Question ${error.question}` : ""}</p>
+              <p>{error.note}</p>
+              <small>{new Date(error.date).toLocaleDateString("fr-FR")} · <span className={error.reviewed ? "reviewed" : "pending"}>{error.reviewed ? "revu" : "à revoir"}</span></small>
+            </div>
+            <div className="card-actions">
+              <button className="icon-button" onClick={() => setErrors(errors.map((item) => item.id === error.id ? { ...item, reviewed: !item.reviewed } : item))}><CheckCircle2 size={17} />{error.reviewed ? "À revoir" : "Marquer comme revu"}</button>
+              <button className="delete-button icon-button" onClick={() => removeError(error.id)}><Trash2 size={17} />Supprimer</button>
+            </div>
+          </article>
+        ))}
+      </div>
+
+      {lightbox && (
+        <div className="lightbox open" role="dialog" aria-modal="true">
+          <button className="close-lightbox" onClick={() => { URL.revokeObjectURL(lightbox); setLightbox(""); }} aria-label="Fermer"><X size={22} /></button>
+          <img src={lightbox} alt="Photo d'erreur agrandie" />
+        </div>
+      )}
+    </section>
+  );
+}
+
+function SectionHeading({ kicker, title, children }) {
+  return (
+    <div className="section-heading">
+      <div>
+        <p className="kicker">{kicker}</p>
+        <h2>{title}</h2>
+      </div>
+      {children}
+    </div>
+  );
+}
+
+function MarkedText({ text }) {
+  const parts = String(text).split(/([\u0600-\u06ff][\u0600-\u06ff\s\d#،()°-]*)/g);
+  return <span>{parts.map((part, index) => /[\u0600-\u06ff]/.test(part) ? <span key={index} className="arabic" dir="rtl">{part}</span> : part)}</span>;
+}
+
+function useLocalJson(key, fallback) {
+  const [value, setValue] = useState(() => {
+    try {
+      const stored = localStorage.getItem(key);
+      return stored ? JSON.parse(stored) : fallback;
+    } catch {
+      return fallback;
+    }
+  });
+  useEffect(() => localStorage.setItem(key, JSON.stringify(value)), [key, value]);
+  return [value, setValue];
+}
+
+function useLocalText(key, fallback) {
+  const [value, setValue] = useState(() => localStorage.getItem(key) || fallback);
+  useEffect(() => localStorage.setItem(key, value), [key, value]);
+  return [value, setValue];
+}
+
+function getDaysLeft(examDate) {
+  const target = new Date(`${examDate}T00:00:00`);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const days = Math.ceil((target - today) / 86400000);
+  return Number.isFinite(days) ? Math.max(0, days) : 0;
+}
+
+function getCurrentProgramDay(examDate) {
+  const target = new Date(`${examDate}T00:00:00`);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const daysUntil = Math.ceil((target - today) / 86400000);
+  return Math.min(10, Math.max(1, 10 - daysUntil + 1));
+}
+
+function buildSeries() {
+  return Array.from({ length: 40 }, (_, index) => {
+    const number = index + 1;
+    let theme;
+    let advanced = false;
+    if (number <= 2) theme = "التشوير الطرقي";
+    else if (number <= 4) theme = "التجاوز";
+    else if (number === 5) theme = "الوقوف و التوقف";
+    else if (number <= 7) theme = "حق الاسبقية";
+    else if (number === 8) theme = "الأضواء و العربة";
+    else if (number === 9) theme = "مفاهيم تطبيقية";
+    else if (number <= 11) theme = "السلامة الطرقية";
+    else if (number <= 13) theme = "المخالفات والغرامات";
+    else if (number <= 22) theme = `الإختبار رقم ${number - 13}`;
+    else {
+      theme = `سلسلة جديدة ${number - 22}`;
+      advanced = true;
+    }
+    return { number, name: `سلسلة ${number}`, theme, advanced };
+  });
+}
+
+function selectPhoto(file, setSelectedPhoto, setPreview) {
+  if (!file || !file.type.startsWith("image/")) return;
+  setSelectedPhoto(file);
+  setPreview(URL.createObjectURL(file));
+}
+
+function openDb() {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open(DB_NAME, DB_VERSION);
+    request.onupgradeneeded = () => request.result.createObjectStore(IMAGE_STORE);
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+}
+
+async function putImage(id, blob) {
+  const db = await openDb();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(IMAGE_STORE, "readwrite");
+    tx.objectStore(IMAGE_STORE).put(blob, id);
+    tx.oncomplete = resolve;
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
+async function getImage(id) {
+  const db = await openDb();
+  return new Promise((resolve, reject) => {
+    const request = db.transaction(IMAGE_STORE).objectStore(IMAGE_STORE).get(id);
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+}
+
+async function deleteImage(id) {
+  const db = await openDb();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(IMAGE_STORE, "readwrite");
+    tx.objectStore(IMAGE_STORE).delete(id);
+    tx.oncomplete = resolve;
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
+function createThumbnail(file) {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    image.onload = () => {
+      const max = 720;
+      const scale = Math.min(1, max / Math.max(image.width, image.height));
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.round(image.width * scale);
+      canvas.height = Math.round(image.height * scale);
+      const ctx = canvas.getContext("2d");
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = "high";
+      ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+      canvas.toBlob((blob) => blob ? resolve(blob) : reject(new Error("Thumbnail impossible")), "image/jpeg", 0.9);
+    };
+    image.onerror = reject;
+    image.src = URL.createObjectURL(file);
+  });
+}
+
+function blobToDataUrl(blob) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+}
+
+function dataUrlToBlob(dataUrl) {
+  const [meta, data] = dataUrl.split(",");
+  const mime = meta.match(/data:(.*);base64/)?.[1] || "application/octet-stream";
+  const bytes = atob(data);
+  const buffer = new Uint8Array(bytes.length);
+  for (let i = 0; i < bytes.length; i += 1) buffer[i] = bytes.charCodeAt(i);
+  return new Blob([buffer], { type: mime });
+}
+
+function slug(value) {
+  return value.toLowerCase().replace(/\s+/g, "-").replace(/[^\w\u0600-\u06ff-]/g, "");
+}
+
+createRoot(document.getElementById("root")).render(<App />);
