@@ -58,3 +58,4 @@ Ensuite :
 - les cases cochees sont stockees dans `permisayman/state.json` sur Vercel Blob ;
 - les images sont stockees dans `permisayman/uploads/` sur Vercel Blob ;
 - n'importe quel navigateur verra le meme etat partage.
+- les pages ouvertes se resynchronisent automatiquement toutes les quelques secondes, sauf pendant la saisie dans un champ.

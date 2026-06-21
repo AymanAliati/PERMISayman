@@ -15,7 +15,8 @@ export const defaultState = {
   series: {},
   videos: {},
   videoChecks: {},
-  errors: []
+  errors: [],
+  updatedAt: ""
 };
 
 export async function readSharedState() {
@@ -35,7 +36,7 @@ export async function readSharedState() {
 }
 
 export async function writeSharedState(state) {
-  const nextState = { ...defaultState, ...state };
+  const nextState = { ...defaultState, ...state, updatedAt: new Date().toISOString() };
   if (hasBlobToken()) {
     await put(STATE_KEY, JSON.stringify(nextState, null, 2), {
       access: "public",

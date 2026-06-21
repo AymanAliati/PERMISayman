@@ -437,6 +437,7 @@ function App() {
   const [videoChecks, setVideoChecks] = useLocalJson(STORAGE.videoChecks, {});
   const [errors, setErrors] = useLocalJson(STORAGE.errors, []);
   const dayRefs = useRef({});
+  const applyingRemoteState = useRef(false);
 
   useEffect(() => {
     if ("serviceWorker" in navigator && location.protocol !== "file:") navigator.serviceWorker.register("/sw.js");
@@ -448,14 +449,7 @@ function App() {
       .then((response) => response.ok ? response.json() : Promise.reject(new Error("API indisponible")))
       .then((state) => {
         if (cancelled) return;
-        setExamDate(state.examDate || "2026-06-30");
-        setTasks(state.tasks || {});
-        setCourseChecks(state.courseChecks || {});
-        setSeries(state.series || {});
-        setVideos(state.videos || {});
-        setVideoChecks(state.videoChecks || {});
-        setErrors(state.errors || []);
-        setServerLoaded(true);
+        applySharedState(state);
       })
       .catch(() => setServerLoaded(false));
     return () => {
@@ -464,12 +458,23 @@ function App() {
   }, []);
 
   useEffect(() => {
-    if (!serverLoaded) return;
+    if (!serverLoaded || applyingRemoteState.current) return;
     const timer = window.setTimeout(() => {
       saveServerState({ examDate, tasks, courseChecks, series, videos, videoChecks, errors });
     }, 350);
     return () => window.clearTimeout(timer);
   }, [serverLoaded, examDate, tasks, courseChecks, series, videos, videoChecks, errors]);
+
+  useEffect(() => {
+    if (!serverLoaded) return;
+    const timer = window.setInterval(async () => {
+      const activeTag = document.activeElement?.tagName;
+      if (["INPUT", "TEXTAREA", "SELECT"].includes(activeTag)) return;
+      const state = await loadServerState();
+      if (state) applySharedState(state);
+    }, 4000);
+    return () => window.clearInterval(timer);
+  }, [serverLoaded]);
 
   const totalTasks = program.reduce((sum, day) => sum + day.tasks.length, 0);
   const doneTasks = Object.values(tasks).filter(Boolean).length;
@@ -484,6 +489,21 @@ function App() {
     });
   }
 
+  function applySharedState(state) {
+    applyingRemoteState.current = true;
+    setExamDate(state.examDate || "2026-06-30");
+    setTasks(state.tasks || {});
+    setCourseChecks(state.courseChecks || {});
+    setSeries(state.series || {});
+    setVideos(state.videos || {});
+    setVideoChecks(state.videoChecks || {});
+    setErrors(state.errors || []);
+    setServerLoaded(true);
+    window.setTimeout(() => {
+      applyingRemoteState.current = false;
+    }, 0);
+  }
+
   return (
     <>
       <header className="app-header">
@@ -491,7 +511,7 @@ function App() {
         <div>
           <p className="kicker">Code de la route marocain - catégorie B</p>
           <h1>PERMISayman</h1>
-          {serverLoaded && <p className="sync-status">Stockage partagé actif</p>}
+          {serverLoaded && <p className="sync-status">Synchronisation partagée active</p>}
         </div>
       </header>
       <nav className="tabs" aria-label="Navigation principale">
@@ -1009,6 +1029,15 @@ async function saveServerState(state) {
     });
   } catch {
     // LocalStorage remains the offline fallback when the shared server is not running.
+  }
+}
+
+async function loadServerState() {
+  try {
+    const response = await fetch("/api/state", { cache: "no-store" });
+    return response.ok ? response.json() : null;
+  } catch {
+    return null;
   }
 }
 
